@@ -1,0 +1,36 @@
+Assumed goals of the coding exercise is to demonstrate:
+  - TDD and clean code
+  - good, extensible design
+  - correct usage of libraries
+  - ability to harness JDK8 features (probably parallel streams etc.)
+  - correct usage of threads and synchronisation
+
+Technologies to consider:
+  - Testing: TestNG, spring test, Scala Check
+  - Testing thread-safety: ...
+  - IOC: spring, guice, nothing/simple factory?
+  - REST: spring, rest easy, spark
+  - Primes: common-math?
+  - deployment (scope?): docker, run as maven goal, stand-alone jar, war
+
+Public interface of the Prime Number Calculator (unspecified... is definition part of test?):
+  - check if a number is prime
+  - generate n-th prime number
+  - generate primes between x and y
+  - check if a number is prime with a given confidence???
+
+Questions:
+  - Why should there be multiple algorithms?
+     ? to demonstrate that design is flexible/extensible
+     ? to allow the user to choose one
+     ? to demonstrate that I know (or can google) them (rather unlikely)
+  - Where to use threads:
+     ? multiple requests at the same time
+     ? multi-threaded generation (ranges, for example)
+  - Are there any memory restrictions?
+
+Algorithms to consider:
+  - naive stateless prime check
+  - simple prime check with look-up table (consider multi-threaded problems with look-up)
+  - BigInteger::isProbablePrime (especially for large numbers)
+  - common-math Primes::isPrime
