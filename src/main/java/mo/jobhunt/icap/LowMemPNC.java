@@ -11,16 +11,17 @@ import static java.util.stream.Collectors.toList;
  * Naive implementation of random number generator with low memory footprint, giving guaranteed results.
  */
 public class LowMemPNC implements PrimeNumberCalculator {
-    public static final BigInteger MAX_VALUE = BigInteger.valueOf((long) Integer.MAX_VALUE);
+    private static final BigInteger MAX_VALUE = BigInteger.valueOf(Long.MAX_VALUE);
+    private static final long MAX_RANGE = 1000000;
 
     @Override
     public boolean isPrime(final BigInteger n, final int ignored) {
-        final int toVerify = validatePrimeCandidate(n).intValue();
+        final long toVerify = validatePrimeCandidate(n).longValue();
 
         return isPrime(toVerify);
     }
 
-    private boolean isPrime(final int toVerify) {
+    private boolean isPrime(final long toVerify) {
         if (toVerify == 2 || toVerify == 3) {
             return true;
         }
@@ -45,8 +46,7 @@ public class LowMemPNC implements PrimeNumberCalculator {
         if (n.compareTo(MAX_VALUE) > 0) {
             throw new IllegalArgumentException("Numbers to check cannot be above: " + MAX_VALUE);
         }
-        final int toVerify = n.intValue();
-        if (toVerify < 1) {
+        if (n.longValue() < 1) {
             throw new IllegalArgumentException("Numbers to check cannot be below 1");
         }
         return n;
@@ -54,23 +54,27 @@ public class LowMemPNC implements PrimeNumberCalculator {
 
     @Override
     public List<BigInteger> range(final BigInteger a, final BigInteger b, final int certainty) {
-        final int lower = validatePrimeCandidate(a).intValue();
-        final int upper = validatePrimeCandidate(b).intValue();
+        final long lower = validatePrimeCandidate(a).intValue();
+        final long upper = validatePrimeCandidate(b).intValue();
         if (lower > upper) {
             throw new IllegalArgumentException("Upper range limit has to be greater or equal to the lower");
         }
-        final Stream<Integer> odds = Stream.iterate((lower / 2) * 2 + 1, v -> v + 2)
+        if (upper - lower + 1 > MAX_RANGE) {
+            throw new IllegalArgumentException("The range is limited to the size of: " + MAX_RANGE);
+        }
+
+        final Stream<Long> odds = Stream.iterate((lower / 2) * 2 + 1, v -> v + 2)
                 .limit((upper - lower) / 2 + 1);
-        final Stream<Integer> toCheck;
+        final Stream<Long> toCheck;
         if (lower < 3) {
-            toCheck = Stream.concat(Stream.of(2), odds);
+            toCheck = Stream.concat(Stream.of(2L), odds);
         } else {
             toCheck = odds;
         }
         return toCheck
                 .parallel()  // threads less likely to be effective here, but why not?
                 .filter((v) -> isPrime(v) && v <= upper)
-                .map(v -> BigInteger.valueOf((long) v))
+                .map(BigInteger::valueOf)
                 .collect(toList());
     }
 }

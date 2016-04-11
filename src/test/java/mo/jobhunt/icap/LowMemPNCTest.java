@@ -15,9 +15,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class LowMemPNCTest {
-    // On my PC it takes 14s to verify that 2^31-1 is prime.  I think it's reasonable to assume that
-    // no one would want to use this naive implementation for anything bigger than that.
-    public static final int MAX_VALUE = Integer.MAX_VALUE;
+    public static final BigInteger MAX_VALUE = BigInteger.valueOf(Long.MAX_VALUE);
+    public static final BigInteger MAX_RANGE = BigInteger.valueOf(1000000); // assumed maximum range
 
     final LowMemPNC service = new LowMemPNC();
 
@@ -39,22 +38,23 @@ public class LowMemPNCTest {
         };
     }
 
+    @Test
+    public void testValidLargeNumber() throws Exception {
+        final BigInteger two = BigInteger.valueOf(2);
+        final BigInteger largestAllowedNumber = MAX_VALUE.subtract(BigInteger.ONE).divide(two).multiply(two);
+        assertThat(service.isPrime(largestAllowedNumber, 0), is(false)); // divisible by 2
+    }
+
     @Test(dataProvider = "isPrimeDP")
     public void testIsPrime(final int n, final boolean expected) throws Exception {
         assertThat(service.isPrime(BigInteger.valueOf((long) n), 0), is(expected));
-    }
-
-    @Test(enabled = false) // just for speed testing
-    public void testLargeNumbers() throws Exception {
-        for (int i = 0; i < 1000; i++) {
-            service.range(BigInteger.valueOf(Integer.MAX_VALUE - 1000), BigInteger.valueOf(Integer.MAX_VALUE - 1L), 0);
-        }
     }
 
     @DataProvider
     public Object[][] rangeDP() {
         return new Object[][]{
                 {2, 5, asList(2, 3, 5)},
+                {1, 5, asList(2, 3, 5)},
                 {14, 16, emptyList()},
                 {17, 17, singletonList(17)},
                 {2, 2, singletonList(2)},
@@ -81,7 +81,8 @@ public class LowMemPNCTest {
                 {BigInteger.TEN.negate(), BigInteger.TEN},
                 {BigInteger.ZERO, BigInteger.TEN},
                 {BigInteger.TEN, BigInteger.ONE},
-                {BigInteger.TEN, BigInteger.valueOf(1L + MAX_VALUE)},
+                {BigInteger.TEN, BigInteger.TEN.add(MAX_RANGE)},
+                {BigInteger.TEN, MAX_VALUE.add(BigInteger.ONE)},
         };
     }
 
@@ -96,7 +97,7 @@ public class LowMemPNCTest {
                 {null},
                 {BigInteger.TEN.negate()},
                 {BigInteger.ZERO},
-                {BigInteger.valueOf(1L + MAX_VALUE)},
+                {MAX_VALUE.add(BigInteger.ONE)},
         };
     }
 
