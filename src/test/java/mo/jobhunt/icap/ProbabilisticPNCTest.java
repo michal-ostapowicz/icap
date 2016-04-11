@@ -5,32 +5,41 @@ import org.testng.annotations.Test;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.CoreMatchers.equalTo;
+import static mo.jobhunt.icap.CommonConstants.MAX_RANGE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.lessThan;
 
-public class LowMemPNCTest {
-    public static final BigInteger MAX_VALUE = BigInteger.valueOf(Long.MAX_VALUE);
+public class ProbabilisticPNCTest {
+    public static final int CERTAINTY = 6;
+    public static final double ACCEPTED_MISS_PROBABILITY = 1.0 / Math.pow(2.0, CERTAINTY);
+    public static final int N_TIRES = 1000;
 
-    final LowMemPNC service = new LowMemPNC();
+    private ProbabilisticPNC service = new ProbabilisticPNC();
 
     @DataProvider
     public Object[][] isPrimeDP() {
         return CommonDataProviders.isPrimeDP();
     }
 
-    @Test
-    public void testValidLargeNumber() throws Exception {
-        final BigInteger two = BigInteger.valueOf(2);
-        final BigInteger largestAllowedNumber = MAX_VALUE.subtract(BigInteger.ONE).divide(two).multiply(two);
-        assertThat(service.isPrime(largestAllowedNumber, 0), is(false)); // divisible by 2
-    }
-
     @Test(dataProvider = "isPrimeDP")
     public void testIsPrime(final int n, final boolean expected) throws Exception {
-        assertThat(service.isPrime(BigInteger.valueOf((long) n), 0), is(expected));
+        final BigInteger toCheck = BigInteger.valueOf((long) n);
+        checkWithAcceptedProbability(() -> service.isPrime(toCheck, CERTAINTY) != expected);
+    }
+
+    private void checkWithAcceptedProbability(final BooleanSupplier fail) {
+        int misses = 0;
+        for (int i = 0; i < N_TIRES; i++) {
+            if (fail.getAsBoolean()) {
+                misses++;
+            }
+        }
+
+        assertThat(1.0 * misses / N_TIRES, is(lessThan(ACCEPTED_MISS_PROBABILITY)));
     }
 
     @DataProvider
@@ -40,10 +49,12 @@ public class LowMemPNCTest {
 
     @Test(dataProvider = "rangeDP")
     public void testRange(final int a, final int b, final List<Integer> expectedIn) throws Exception {
+        final List<BigInteger> expected = expectedIn.stream().map(n -> BigInteger.valueOf((long) n)).collect(toList());
+
         final BigInteger biA = BigInteger.valueOf((long) a);
         final BigInteger biB = BigInteger.valueOf((long) b);
-        final List<BigInteger> expected = expectedIn.stream().map(n -> BigInteger.valueOf((long) n)).collect(toList());
-        assertThat(service.range(biA, biB, 0), equalTo(expected));
+
+        checkWithAcceptedProbability(() -> !service.range(biA, biB, 0).equals(expected));
     }
 
     @DataProvider
@@ -55,28 +66,12 @@ public class LowMemPNCTest {
                 {BigInteger.TEN.negate(), BigInteger.TEN},
                 {BigInteger.ZERO, BigInteger.TEN},
                 {BigInteger.TEN, BigInteger.ONE},
-                {BigInteger.TEN, BigInteger.TEN.add(CommonConstants.MAX_RANGE)},
-                {BigInteger.TEN, MAX_VALUE.add(BigInteger.ONE)},
+                {BigInteger.TEN, BigInteger.TEN.add(MAX_RANGE)},
         };
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class, dataProvider = "invalidRangeDP")
     public void testInvalidRange(final BigInteger a, final BigInteger b) throws Exception {
         service.range(a, b, 0);
-    }
-
-    @DataProvider
-    public Object[][] invalidIsPrimeDP() {
-        return new Object[][]{
-                {null},
-                {BigInteger.TEN.negate()},
-                {BigInteger.ZERO},
-                {MAX_VALUE.add(BigInteger.ONE)},
-        };
-    }
-
-    @Test(expectedExceptions = IllegalArgumentException.class, dataProvider = "invalidIsPrimeDP")
-    public void testInvalidIsPrime(final BigInteger n) throws Exception {
-        service.isPrime(n, 0);
     }
 }
