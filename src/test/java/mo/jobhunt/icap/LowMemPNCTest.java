@@ -33,6 +33,7 @@ public class LowMemPNCTest {
                 {7, true},
                 {8, false},
                 {9, false},
+                {(int) (Math.pow(2, 31) - 1), true},  // with sqrt it doesn't take so long anymore
                 {52691, true}, // http://www.primos.mat.br/primeiros_10000_primos.txt
                 {31477 * 31477, false}, // http://www.primos.mat.br/primeiros_10000_primos.txt
         };
@@ -43,12 +44,23 @@ public class LowMemPNCTest {
         assertThat(service.isPrime(BigInteger.valueOf((long) n), 0), is(expected));
     }
 
+    @Test(enabled = false) // just for speed testing
+    public void testLargeNumbers() throws Exception {
+        for (int i = 0; i < 1000; i++) {
+            service.range(BigInteger.valueOf(Integer.MAX_VALUE - 1000), BigInteger.valueOf(Integer.MAX_VALUE - 1L), 0);
+        }
+    }
+
     @DataProvider
     public Object[][] rangeDP() {
         return new Object[][]{
                 {2, 5, asList(2, 3, 5)},
                 {14, 16, emptyList()},
                 {17, 17, singletonList(17)},
+                {2, 2, singletonList(2)},
+                {3, 3, singletonList(3)},
+                {4, 6, singletonList(5)},
+                {1, 2, singletonList(2)},
         };
     }
 
