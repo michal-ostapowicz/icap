@@ -18,7 +18,7 @@ public class PNCRegistry {
      * @return returns a prime number calculator named {@code name}
      */
     public static PrimeNumberCalculator get(final String name) {
-        return null;
+        return calculators.get(name);
     }
 
     /**
@@ -30,6 +30,6 @@ public class PNCRegistry {
      * @param pncSupplier function creating the calculator
      */
     public static void register(final String name, final Supplier<PrimeNumberCalculator> pncSupplier) {
-
+        calculators.computeIfAbsent(name, ignore -> pncSupplier.get());
     }
 }
