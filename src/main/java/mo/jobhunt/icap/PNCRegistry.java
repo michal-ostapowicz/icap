@@ -8,7 +8,7 @@ import java.util.function.Supplier;
  * Prime number calculators registry.
  */
 public class PNCRegistry {
-    private final static Map<String, PrimeNumberCalculator> calculators = new ConcurrentHashMap<String, PrimeNumberCalculator>();
+    private final static Map<String, PrimeNumberCalculator> calculators = new ConcurrentHashMap<>();
 
     private PNCRegistry() {
     }
