@@ -18,7 +18,11 @@ public class PNCRegistry {
      * @return returns a prime number calculator named {@code name}
      */
     public static PrimeNumberCalculator get(final String name) {
-        return calculators.get(name);
+        final PrimeNumberCalculator rv = calculators.get(name);
+        if (rv == null) {
+            throw new IllegalArgumentException("Prime Number Calculator named: " + name + " not found.");
+        }
+        return rv;
     }
 
     /**

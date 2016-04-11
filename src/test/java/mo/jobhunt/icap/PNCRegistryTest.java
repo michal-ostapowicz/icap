@@ -23,6 +23,11 @@ public class PNCRegistryTest {
         verify(PNCRegistry.get("pnc2"), times(2)).isPrime(BigInteger.ONE, 0);
     }
 
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testGetUnregistered() throws Exception {
+        PNCRegistry.get("unknown");
+    }
+
     @Test
     public void testRegisterOnlyOnce() throws Exception {
         final AtomicInteger counter = new AtomicInteger();
