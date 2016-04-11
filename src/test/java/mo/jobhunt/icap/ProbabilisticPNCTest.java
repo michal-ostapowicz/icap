@@ -54,7 +54,17 @@ public class ProbabilisticPNCTest {
         final BigInteger biA = BigInteger.valueOf((long) a);
         final BigInteger biB = BigInteger.valueOf((long) b);
 
-        checkWithAcceptedProbability(() -> !service.range(biA, biB, 0).equals(expected));
+        checkWithAcceptedProbability(() -> !service.range(biA, biB, CERTAINTY).equals(expected));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testEnsurePositiveCertaintyIsPrime() throws Exception {
+        service.isPrime(BigInteger.TEN, 0);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testEnsurePositiveCertaintyRange() throws Exception {
+        service.range(BigInteger.ONE, BigInteger.TEN, 0);
     }
 
     @DataProvider
@@ -72,6 +82,6 @@ public class ProbabilisticPNCTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class, dataProvider = "invalidRangeDP")
     public void testInvalidRange(final BigInteger a, final BigInteger b) throws Exception {
-        service.range(a, b, 0);
+        service.range(a, b, CERTAINTY);
     }
 }

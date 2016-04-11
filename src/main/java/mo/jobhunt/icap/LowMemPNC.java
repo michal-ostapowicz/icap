@@ -12,7 +12,6 @@ import static java.util.stream.Collectors.toList;
  */
 public class LowMemPNC implements PrimeNumberCalculator {
     private static final BigInteger MAX_VALUE = BigInteger.valueOf(Long.MAX_VALUE);
-    private static final long MAX_RANGE = 1000000;
 
     @Override
     public boolean isPrime(final BigInteger n, final int ignored) {
@@ -59,8 +58,8 @@ public class LowMemPNC implements PrimeNumberCalculator {
         if (lower > upper) {
             throw new IllegalArgumentException("Upper range limit has to be greater or equal to the lower");
         }
-        if (upper - lower + 1 > MAX_RANGE) {
-            throw new IllegalArgumentException("The range is limited to the size of: " + MAX_RANGE);
+        if (CommonConstants.MAX_RANGE.compareTo(BigInteger.valueOf(upper - lower + 1)) < 0) {
+            throw new IllegalArgumentException("The range is limited to the size of: " + CommonConstants.MAX_RANGE);
         }
 
         final Stream<Long> odds = Stream.iterate((lower / 2) * 2 + 1, v -> v + 2)
